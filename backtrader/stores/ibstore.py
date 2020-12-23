@@ -901,7 +901,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         # Used for "CASH" markets
         # The price field has been seen to be missing in some instances even if
         # "field" is 1
-        # tickerId = msg.tickerId
+        tickerId = msg.tickerId
         # fieldcode = self.iscash[tickerId]
         # if fieldcode:
         #     if msg.field == fieldcode:  # Expected cash field code
