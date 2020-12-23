@@ -746,15 +746,15 @@ class IBStore(with_metaclass(MetaSingleton, object)):
 
         what = what or 'TRADES'
 
-        self.conn.reqHistoricalData(
-            tickerId,
-            contract,
-            bytes(intdate.strftime('%Y%m%d %H:%M:%S') + ' GMT'),
-            bytes(duration),
-            bytes(barsize),
-            bytes(what),
-            int(useRTH),
-            2)  # dateformat 1 for string, 2 for unix time in seconds
+        # self.conn.reqHistoricalData(
+        #     tickerId,
+        #     contract,
+        #     bytes(intdate.strftime('%Y%m%d %H:%M:%S') + ' GMT'),
+        #     bytes(duration),
+        #     bytes(barsize),
+        #     bytes(what),
+        #     int(useRTH),
+        #     2)  # dateformat 1 for string, 2 for unix time in seconds
 
         return q
 
@@ -780,15 +780,15 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         self.histsend[tickerId] = sessionend
         self.histtz[tickerId] = tz
 
-        self.conn.reqHistoricalData(
-            tickerId,
-            contract,
-            bytes(enddate.strftime('%Y%m%d %H:%M:%S') + ' GMT'),
-            bytes(duration),
-            bytes(barsize),
-            bytes(what),
-            int(useRTH),
-            2)
+        # self.conn.reqHistoricalData(
+        #     tickerId,
+        #     contract,
+        #     bytes(enddate.strftime('%Y%m%d %H:%M:%S') + ' GMT'),
+        #     bytes(duration),
+        #     bytes(barsize),
+        #     bytes(what),
+        #     int(useRTH),
+        #     2)
 
         return q
 
@@ -901,25 +901,25 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         # Used for "CASH" markets
         # The price field has been seen to be missing in some instances even if
         # "field" is 1
-        tickerId = msg.tickerId
-        fieldcode = self.iscash[tickerId]
-        if fieldcode:
-            if msg.field == fieldcode:  # Expected cash field code
-                try:
-                    if msg.price == -1.0:
-                        # seems to indicate the stream is halted for example in
-                        # between 23:00 - 23:15 CET for FOREX
-                        return
-                except AttributeError:
-                    pass
+        # tickerId = msg.tickerId
+        # fieldcode = self.iscash[tickerId]
+        # if fieldcode:
+        #     if msg.field == fieldcode:  # Expected cash field code
+        try:
+            if msg.price == -1.0:
+                # seems to indicate the stream is halted for example in
+                # between 23:00 - 23:15 CET for FOREX
+                return
+        except AttributeError:
+            pass
 
-                try:
-                    rtvol = RTVolume(price=msg.price, tmoffset=self.tmoffset)
-                    # print('rtvol with datetime:', rtvol.datetime)
-                except ValueError:  # price not in message ...
-                    pass
-                else:
-                    self.qs[tickerId].put(rtvol)
+        try:
+            rtvol = RTVolume(price=msg.price, tmoffset=self.tmoffset)
+            # print('rtvol with datetime:', rtvol.datetime)
+        except ValueError:  # price not in message ...
+            pass
+        else:
+            self.qs[tickerId].put(rtvol)
 
     @ibregister
     def realtimeBar(self, msg):
