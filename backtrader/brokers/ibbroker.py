@@ -276,6 +276,7 @@ class IBBroker(with_metaclass(MetaIBBroker, BrokerBase)):
         self.ordstatus = collections.defaultdict(dict)
         self.notifs = queue.Queue()  # holds orders which are notified
         self.tonotify = collections.deque()  # hold oids to be notified
+        self.data_by_key = dict() # hold data for loading open orders
 
     def start(self):
         super(IBBroker, self).start()
@@ -567,7 +568,20 @@ class IBBroker(with_metaclass(MetaIBBroker, BrokerBase)):
             try:
                 order = self.orderbyid[msg.orderId]
             except (KeyError, AttributeError):
-                return  # no order or no id in error
+                import logging
+                logging.debug(msg)
+                logging.debug(msg.order)
+                # return  # no order or no id in error
+                if msg.Symbol in self.data_by_key:
+                    data = self.data_by_key[msg.Symbol]
+                    m_order = msg.order
+                    reverse_map = {v: k for k, v in IBOrder._IBOrdTypes.items()}
+                    order = self._makeorder(
+                        m_order.Action, self, data, m_order.TotalQuantity, 
+                        m_order.LmtPrice, reverse_map[m_order.OrderType],
+                        None, 0
+                    )
+                    self.orderbyid[msg.orderId] = order
 
             if msg.orderState.m_status in ['PendingCancel', 'Cancelled',
                                            'Canceled']:

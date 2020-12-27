@@ -568,7 +568,7 @@ class BackBroker(bt.BrokerBase):
             comminfo = self.getcommissioninfo(order.data)
 
             position = positions.setdefault(
-                order.data, self.positions[order.data].clone())
+                order.data, self.getposition(order.data).clone())
 
             # pseudo-execute the order to get the remaining cash after exec
             cash = self._execute(order, cash=cash, position=position)
